@@ -57,7 +57,7 @@ h1{margin:2px 0 0;font-size:34px;font-weight:700;letter-spacing:-.025em;line-hei
 /* Widgets comida / cena */
 .meals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
 .meal{padding:16px 18px 6px;display:grid;gap:14px;align-content:start;background:linear-gradient(180deg,var(--tint) 0%,var(--card) 62%)}
-.meal.casa{--tint:var(--green-bg);--c:var(--green)} .meal.tarde{--tint:var(--orange-bg);--c:var(--orange)} .meal.fuera{--tint:var(--red-bg);--c:var(--red)}
+.meal.casa{--tint:var(--green-bg);--c:var(--green)} .meal.tarde{--tint:var(--orange-bg);--c:var(--orange)} .meal.fuera{--tint:var(--red-bg);--c:var(--red)} .meal.nd{--tint:var(--fill);--c:var(--label-3)}
 .meal-head{display:flex;align-items:center;gap:10px}
 .tile{font-size:22px;line-height:1}
 .status{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--c);box-shadow:0 0 0 6px var(--tint)}
@@ -98,7 +98,7 @@ h1{margin:2px 0 0;font-size:34px;font-weight:700;letter-spacing:-.025em;line-hei
 .nav button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .nav .hoy-btn{width:auto;padding:0 12px;border-radius:16px;font-size:13px}
 .bub{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px}
-.bub.casa{background:var(--green-bg)} .bub.tarde{background:var(--orange-bg)} .bub.fuera{background:var(--red-bg)}
+.bub.casa{background:var(--green-bg)} .bub.tarde{background:var(--orange-bg)} .bub.fuera{background:var(--red-bg)} .bub.nd{background:var(--fill);opacity:.6}
 .bub.chef{background:var(--blue-bg)} .bub.none{background:transparent}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--label-2);padding:0 16px}
 @media (max-width:420px){.week{padding:12px 4px;gap:2px}.bub{width:32px;height:32px;font-size:16px}.col .dd{font-size:19px}}
@@ -179,27 +179,50 @@ footer{font-size:12px;color:var(--label-2);text-align:center;line-height:1.6}
    cocina: true | false | "laborable" (solo lun–vie) | null (no se muestra)
    ⚠️ Cambiar las claves por los códigos reales de Turnos */
 const TURNOS = {
-  M:  { nombre:"Mañana",             color:"var(--t-man)", corto:"Mañana",   comida:"tarde", cena:"casa",  cocina:false },
-  P:  { nombre:"Jornada partida",    color:"var(--t-par)", corto:"Partida",  comida:"casa",  cena:"casa",  cocina:false },
-  MD: { nombre:"Mediodía",           color:"var(--t-med)", corto:"Mediodía", comida:"fuera", cena:"casa",  cocina:false },
-  T:  { nombre:"Tarde",              color:"var(--t-tar)", corto:"Tarde",    comida:"casa",  cena:"fuera", cocina:true  },
-  L:  { nombre:"Libranza",           color:"var(--t-lib)", corto:"Libre",    comida:"casa",  cena:"casa",  cocina:"laborable" },
-  V:  { nombre:"Vacaciones",         color:"var(--t-vac)", corto:"Vacas",    comida:"casa",  cena:"casa",  cocina:null },
-  DA: { nombre:"Días acumulados",    color:"var(--t-otro)", corto:"Acum.",    comida:"casa",  cena:"casa",  cocina:null },
-  AP: { nombre:"Asuntos propios",    color:"var(--t-otro)", corto:"A. prop.", comida:"casa",  cena:"casa",  cocina:null },
-  HE: { nombre:"Día por hora extra", color:"var(--t-otro)", corto:"H. extra", comida:"casa",  cena:"casa",  cocina:null },
-  B:  { nombre:"Baja",               color:"var(--t-baja)", corto:"Baja",     comida:"casa",  cena:"casa",  cocina:null },
+  "Mañana":               { nombre:"Mañana",            color:"var(--t-man)",  corto:"Mañana",   comida:"tarde", cena:"casa",  cocina:false },
+  "Jornada partida":      { nombre:"Jornada partida",   color:"var(--t-par)",  corto:"Partida",  comida:"casa",  cena:"casa",  cocina:false },
+  "Mediodía":             { nombre:"Mediodía",          color:"var(--t-med)",  corto:"Mediodía", comida:"fuera", cena:"casa",  cocina:false },
+  "Tarde":                { nombre:"Tarde",             color:"var(--t-tar)",  corto:"Tarde",    comida:"casa",  cena:"fuera", cocina:true  },
+  "Libranza":             { nombre:"Libranza",          color:"var(--t-lib)",  corto:"Libre",    comida:"casa",  cena:"casa",  cocina:"laborable" },
+  "Vacaciones":           { nombre:"Vacaciones",        color:"var(--t-vac)",  corto:"Vacas",    comida:"casa",  cena:"casa",  cocina:null },
+  "Días acumulados":      { nombre:"Días acumulados",   color:"var(--t-otro)", corto:"Acum.",    comida:"casa",  cena:"casa",  cocina:null },
+  "Asuntos propios":      { nombre:"Asuntos propios",   color:"var(--t-otro)", corto:"A. prop.", comida:"casa",  cena:"casa",  cocina:null },
+  "Días por horas extra": { nombre:"Día por horas extra", color:"var(--t-otro)", corto:"H. extra", comida:"casa", cena:"casa",  cocina:null },
+  "Baja laboral":         { nombre:"Baja",              color:"var(--t-baja)", corto:"Baja",     comida:"casa",  cena:"casa",  cocina:null },
 };
+// Día sin nada en el cuadrante
+const SIN_TURNO = { nombre:"Sin turno", color:"var(--t-baja)", corto:"—", comida:"nd", cena:"nd", cocina:null };
+const turnoDe = (turnos,d) => TURNOS[turnos[iso(d)]] ?? SIN_TURNO;
 const CAMBIO_DE_DIA = 22; // desde las 22:00 se muestra el día siguiente
 
-let turnosEjemplo = true;
-async function cargarTurnos(desde, dias){
-  // TODO: Firestore + overrides de dashboard-overrides/{fecha}
-  const patron = ["T","T","MD","M","P","L","L"]; // lun..dom (ejemplo)
-  const out = {};
-  for(let i=0;i<dias;i++){ const d=addDays(desde,i); out[iso(d)] = patron[(d.getDay()+6)%7]; }
-  return out;
+/* ====================== FIRESTORE ======================
+   Turnos (Web) guarda todo en turnos/data → events: [{date:"AAAA-MM-DD", person, type, order}] */
+const FIRESTORE = "https://firestore.googleapis.com/v1/projects/turnos-web-mediterraneo/databases/(default)/documents/turnos/data?key=AIzaSyDHC981ppY60vOx5fimVAk-0L8XzTnUun8&mask.fieldPaths=events";
+const PERSONA = "Fede";
+let turnosEjemplo = false, cacheTurnos = null, cacheHora = 0;
+async function cargarTodos(){
+  if(cacheTurnos && Date.now()-cacheHora < 10*60*1000) return cacheTurnos;
+  try{
+    const r = await fetch(FIRESTORE); if(!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    const out = {}, orden = {};
+    for(const v of j.fields?.events?.arrayValue?.values ?? []){
+      const f = v.mapValue?.fields; if(!f || f.person?.stringValue !== PERSONA) continue;
+      const fecha = f.date?.stringValue, tipo = f.type?.stringValue;
+      const o = Number(f.order?.integerValue ?? f.order?.doubleValue ?? 0);
+      if(fecha && tipo && (orden[fecha] === undefined || o < orden[fecha])){ out[fecha] = tipo; orden[fecha] = o; }
+    }
+    turnosEjemplo = false; cacheTurnos = out; cacheHora = Date.now();
+    return out;
+  }catch(e){
+    // Sin conexión con Firestore (p. ej. en la vista previa): datos de ejemplo
+    turnosEjemplo = true;
+    const patron = ["Tarde","Tarde","Mediodía","Mañana","Jornada partida","Libranza","Libranza"], out = {};
+    const hoy = new Date(); for(let i=-35;i<70;i++){ const d=addDays(hoy,i); out[iso(d)] = patron[(d.getDay()+6)%7]; }
+    return out;
+  }
 }
+async function cargarTurnos(){ return cargarTodos(); }
 
 /* ====================== LUZ (Red Eléctrica · PVPC) ======================
    Devuelve 24 precios en €/kWh, o null si aún no están publicados (mañana: hacia las 20:15). */
@@ -621,27 +644,28 @@ const DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
 const fmtFecha=new Intl.DateTimeFormat("es-ES",{weekday:"long",day:"numeric",month:"long"});
 const eur = v => v.toFixed(3).replace(".",",");
 const diasDesdeInicio = d => Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate()) - new Date(2026,9,27))/864e5);
-const EMO = { casa:"🏠", tarde:"🕒", fuera:"🍱" };
+const EMO = { casa:"🏠", tarde:"🕒", fuera:"🍱", nd:"❔" };
 const hh = h => `${String(h).padStart(2,"0")}:00`;
 
 /* ====================== WIDGETS COMIDA / CENA ====================== */
 function widget(tipo,t,d){
   const estado=t[tipo], cocina=tipo==="comida"?cocinaDe(t,d):undefined;
   const titulo = {
-    comida:{casa:"Como en casa", tarde:"Como en casa, pero tarde", fuera:"Como en el trabajo"},
-    cena:{casa:"Ceno en casa", tarde:"Ceno en casa, pero tarde", fuera:"No ceno en casa"},
+    comida:{casa:"Como en casa", tarde:"Como en casa, pero tarde", fuera:"Como en el trabajo", nd:"Todavía no lo sé"},
+    cena:{casa:"Ceno en casa", tarde:"Ceno en casa, pero tarde", fuera:"No ceno en casa", nd:"Todavía no lo sé"},
   }[tipo][estado];
-  const sub = estado==="fuera" ? `Me llevo la ${tipo} en tupper`
+  const sub = estado==="nd" ? "Este día aún no está en el cuadrante"
+            : estado==="fuera" ? `Me llevo la ${tipo} en tupper`
             : estado==="tarde" ? `Llegaré cuando ya estéis ${tipo==="comida"?"comiendo":"cenando"}`
             : cocina===true ? "Puedo hacer la comida" : cocina===false ? "No puedo hacer la comida" : "Contad conmigo en la mesa";
   const filas = [];
-  if(tipo==="comida") filas.push(["👨‍🍳","Hacer la comida",
+  if(estado!=="nd" && tipo==="comida") filas.push(["👨‍🍳","Hacer la comida",
     estado==="fuera"?"No": cocina===true?"Puedo": cocina===false?"No puedo":"Sin definir",
     estado==="fuera"||cocina===false?"no": cocina===true?"ok":"na"]);
-  filas.push(["🍱","Tupper", estado==="fuera"?"Sí, me lo llevo":"No hace falta", estado==="fuera"?"warn":"na"]);
+  if(estado!=="nd") filas.push(["🍱","Tupper", estado==="fuera"?"Sí, me lo llevo":"No hace falta", estado==="fuera"?"warn":"na"]);
 
   return `<div class="card meal ${estado}">
-    <div class="meal-head"><div class="tile">${tipo==="comida"?"☀️":"🌘"}</div><span>${tipo==="comida"?"Comida":"Cena"}</span><i class="status" aria-label="${estado==="casa"?"Estoy":estado==="tarde"?"Llego tarde":"No estoy"}"></i></div>
+    <div class="meal-head"><div class="tile">${tipo==="comida"?"☀️":"🌘"}</div><span>${tipo==="comida"?"Comida":"Cena"}</span><i class="status" aria-label="${estado==="casa"?"Estoy":estado==="tarde"?"Llego tarde":estado==="nd"?"Sin turno":"No estoy"}"></i></div>
     <h3>${titulo}<small>${sub}</small></h3>
     <ul class="facts">${filas.map(([i,k,v,c])=>`<li><span class="ico">${i}</span><span class="k">${k}</span><span class="v ${c}">${v}</span></li>`).join("")}</ul>
   </div>`;
@@ -652,7 +676,7 @@ async function render(){
   const ahora=new Date(), hoy=new Date(ahora.getFullYear(),ahora.getMonth(),ahora.getDate());
   const turnos=await cargarTurnos(hoy,9);
   const verManana=ahora.getHours()>=CAMBIO_DE_DIA;
-  const foco=verManana?addDays(hoy,1):hoy, tf=TURNOS[turnos[iso(foco)]]??TURNOS.L;
+  const foco=verManana?addDays(hoy,1):hoy, tf=turnoDe(turnos,foco);
 
   document.getElementById("titulo").textContent=verManana?"Mañana":"Hoy";
   document.getElementById("fecha").textContent=fmtFecha.format(foco);
@@ -661,7 +685,7 @@ async function render(){
   document.getElementById("autor").textContent=`— ${fr.a}`;
   document.getElementById("meals").innerHTML=widget("comida",tf,foco)+widget("cena",tf,foco);
 
-  const sig=addDays(foco,1), ts=TURNOS[turnos[iso(sig)]]??TURNOS.L;
+  const sig=addDays(foco,1), ts=turnoDe(turnos,sig);
   const que=[ts.comida==="fuera"&&"la comida", ts.cena==="fuera"&&"la cena"].filter(Boolean);
   const av=document.getElementById("avisos");
   if(que.length){
@@ -691,7 +715,7 @@ async function renderSemana(){
   const ini=addDays(lunes,semOffset*7), turnos=await cargarTurnos(ini,7);
   let html="";
   for(let i=0;i<7;i++){
-    const d=addDays(ini,i), t=TURNOS[turnos[iso(d)]]??TURNOS.L, c=cocinaDe(t,d), esHoy=iso(d)===iso(hoy);
+    const d=addDays(ini,i), t=turnoDe(turnos,d), c=cocinaDe(t,d), esHoy=iso(d)===iso(hoy);
     html+=`<div class="col${esHoy?" today":""}${d.getDay()===0?" dom":""}" title="${t.nombre}">
       <span class="dn">${esHoy?"Hoy":DIAS[d.getDay()]}</span>
       <span class="dd">${d.getDate()}</span>
