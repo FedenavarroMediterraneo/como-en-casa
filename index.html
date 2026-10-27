@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>¿Como en Casa?</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="¿Como en casa?">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: iOS — título grande, frase del día, dos widgets (comida/cena), aviso, semana horizontal, luz con selector Hoy/Mañana */
+:root{
+  --bg:#f2f2f7; --card:#ffffff; --fill:rgba(120,120,128,.12); --label:#000000; --label-2:rgba(60,60,67,.6); --label-3:rgba(60,60,67,.3); --sep:rgba(60,60,67,.14);
+  --green:#34c759; --orange:#ff9500; --red:#ff3b30; --blue:#007aff;
+  --t-man:#f08c00; --t-par:#0a6cf0; --t-med:#e5484d; --t-tar:#2fa84f; --t-lib:#e8457f; --t-vac:#48484a; --t-otro:#48484a; --t-baja:#8e8e93;
+  --green-bg:rgba(52,199,89,.13); --orange-bg:rgba(255,149,0,.14); --red-bg:rgba(255,59,48,.12); --blue-bg:rgba(0,122,255,.11);
+  --font:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --round:"SF Pro Rounded", ui-rounded, -apple-system, system-ui, sans-serif;
+  --serif:"New York", ui-serif, Georgia, serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000000; --card:#1c1c1e; --fill:rgba(120,120,128,.24); --label:#ffffff; --label-2:rgba(235,235,245,.6); --label-3:rgba(235,235,245,.3); --sep:rgba(84,84,88,.6);
+  --green:#30d158; --orange:#ff9f0a; --red:#ff453a; --blue:#0a84ff;
+  --green-bg:rgba(48,209,88,.17); --orange-bg:rgba(255,159,10,.17); --red-bg:rgba(255,69,58,.17); --blue-bg:rgba(10,132,255,.2);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000000; --card:#1c1c1e; --fill:rgba(120,120,128,.24); --label:#ffffff; --label-2:rgba(235,235,245,.6); --label-3:rgba(235,235,245,.3); --sep:rgba(84,84,88,.6);
+  --green:#30d158; --orange:#ff9f0a; --red:#ff453a; --blue:#0a84ff;
+  --green-bg:rgba(48,209,88,.17); --orange-bg:rgba(255,159,10,.17); --red-bg:rgba(255,69,58,.17); --blue-bg:rgba(10,132,255,.2);
+  color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--label);font-family:var(--font);font-size:17px;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:720px;margin:0 auto;padding-block:20px 40px;display:grid;gap:28px}
+
+header{display:flex;justify-content:space-between;align-items:end;gap:12px}
+.date{font-size:13px;font-weight:600;color:var(--label-2);text-transform:uppercase;letter-spacing:.02em}
+h1{margin:2px 0 0;font-size:34px;font-weight:700;letter-spacing:-.025em;line-height:1.1}
+.clock{font-family:var(--round);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--label-2)}
+
+.section{display:grid;gap:8px}
+.section-title{font-size:13px;font-weight:600;text-transform:uppercase;color:var(--label-2);padding-left:16px;letter-spacing:.02em}
+.card{background:var(--card);border-radius:22px}
+
+.quote{padding:20px 22px;display:grid;gap:8px}
+.quote p{margin:0;font-family:var(--serif);font-size:21px;line-height:1.35;font-weight:500;text-wrap:balance}
+.quote span{font-size:13px;color:var(--label-2)}
+
+/* Widgets comida / cena */
+.meals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
+.meal{padding:16px 18px 6px;display:grid;gap:14px;align-content:start;background:linear-gradient(180deg,var(--tint) 0%,var(--card) 62%)}
+.meal.casa{--tint:var(--green-bg);--c:var(--green)} .meal.tarde{--tint:var(--orange-bg);--c:var(--orange)} .meal.fuera{--tint:var(--red-bg);--c:var(--red)}
+.meal-head{display:flex;align-items:center;gap:10px}
+.tile{font-size:22px;line-height:1}
+.status{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--c);box-shadow:0 0 0 6px var(--tint)}
+.meal-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;font-size:13px;color:var(--label-2);margin-top:-16px}
+.meal-legend span{display:inline-flex;align-items:center;gap:6px}
+.meal-legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.meal-head span{font-size:15px;font-weight:600;color:var(--c);text-transform:uppercase;letter-spacing:.02em}
+.meal-head em{margin-left:auto;font-style:normal;font-size:13px;color:var(--label-2);font-variant-numeric:tabular-nums}
+.meal h3{margin:0;font-size:26px;font-weight:700;letter-spacing:-.025em;line-height:1.12;text-wrap:balance}
+.meal h3 small{display:block;font-size:15px;font-weight:400;color:var(--label-2);letter-spacing:-.01em;margin-top:4px}
+.facts{list-style:none;margin:0;padding:0}
+.facts li{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--sep);font-size:15px}
+.facts .ico{width:24px;text-align:center;font-size:17px}
+.facts .k{color:var(--label-2)}
+.facts .v{margin-left:auto;font-weight:600;text-align:right}
+.v.ok{color:var(--green)} .v.warn{color:var(--orange)} .v.no{color:var(--red)} .v.na{color:var(--label-3);font-weight:500}
+
+.notice{display:flex;gap:14px;align-items:center;padding:14px 18px}
+.notice-ico{width:40px;height:40px;border-radius:11px;background:var(--orange-bg);display:grid;place-items:center;font-size:22px;flex:none}
+.notice b{display:block;font-size:15px;font-weight:600}
+.notice span{font-size:15px;color:var(--label-2);line-height:1.3}
+
+/* Semana horizontal */
+.week{padding:14px 10px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.col{display:grid;justify-items:center;gap:6px;padding:8px 2px;border-radius:16px;text-align:center}
+.col.today{background:var(--fill)}
+.col .dn{font-size:13px;font-weight:600;color:var(--label-2);text-transform:uppercase}
+.col.today .dn{color:var(--blue)}
+.col.dom .dd{color:var(--red)}
+.col .dd{font-family:var(--round);font-size:22px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.col .tn{font-size:11px;font-weight:700;color:#fff;background:var(--tc,var(--t-baja));padding:3px 7px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;box-sizing:border-box;margin-bottom:2px;letter-spacing:0}
+.week-head{display:flex;align-items:center;gap:8px;padding:0 4px 0 16px}
+.week-head .section-title{padding-left:0}
+.week-head .range{font-size:13px;color:var(--label-2);margin-left:auto;font-variant-numeric:tabular-nums}
+.nav{display:flex;gap:6px}
+.nav button{all:unset;cursor:pointer;width:32px;height:32px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--blue);font-size:18px;font-weight:600;line-height:1}
+.nav button:disabled{opacity:.35;cursor:default}
+.nav button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.nav .hoy-btn{width:auto;padding:0 12px;border-radius:16px;font-size:13px}
+.bub{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:18px}
+.bub.casa{background:var(--green-bg)} .bub.tarde{background:var(--orange-bg)} .bub.fuera{background:var(--red-bg)}
+.bub.chef{background:var(--blue-bg)} .bub.none{background:transparent}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--label-2);padding:0 16px}
+@media (max-width:420px){.week{padding:12px 4px;gap:2px}.bub{width:32px;height:32px;font-size:16px}.col .dd{font-size:19px}}
+
+/* Luz */
+.luz{padding:16px 18px 18px;display:grid;gap:14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--fill);border-radius:10px;padding:2px;gap:2px}
+.seg button{all:unset;cursor:pointer;text-align:center;font-size:14px;font-weight:600;padding:7px 0;border-radius:8px;color:var(--label)}
+.seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.seg button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.readout{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;min-height:58px}
+.readout .h{font-size:13px;font-weight:600;color:var(--label-2)}
+.price{font-family:var(--round);font-size:40px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.price small{font-size:15px;font-weight:500;color:var(--label-2);margin-left:4px}
+.chip{font-size:13px;font-weight:600;padding:5px 11px;border-radius:99px}
+.chip.barata{background:var(--green-bg);color:var(--green)} .chip.media{background:var(--orange-bg);color:var(--orange)} .chip.cara{background:var(--red-bg);color:var(--red)}
+.chart{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));align-items:end;gap:3px;height:110px;touch-action:none;cursor:crosshair}
+.chart i{display:block;border-radius:3px;opacity:.45;transition:opacity .12s}
+.chart i.barata{background:var(--green)} .chart i.media{background:var(--orange)} .chart i.cara{background:var(--red)}
+.chart i.sel{opacity:1}
+.axis{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:3px;font-size:11px;color:var(--label-2);margin-top:-8px;font-variant-numeric:tabular-nums}
+.axis span{white-space:nowrap}
+.empty{padding:28px 8px;text-align:center;color:var(--label-2);font-size:15px;line-height:1.4}
+.tips{list-style:none;margin:0;padding:0}
+.tips li{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--sep);font-size:15px}
+.tips .ico{width:24px;text-align:center;font-size:17px}
+.tips .v{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
+.tips .v small{font-weight:400;color:var(--label-2);margin-left:6px}
+
+footer{font-size:12px;color:var(--label-2);text-align:center;line-height:1.6}
+.ej{color:var(--orange)}
+@media (prefers-reduced-motion:reduce){.chart i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div><div class="date" id="fecha"></div><h1 id="titulo">Hoy</h1></div>
+    <div class="clock" id="hora">--:--</div>
+  </header>
+
+  <div class="card quote"><p id="frase"></p><span id="autor"></span></div>
+
+  <div class="meals" id="meals"></div>
+  <div class="meal-legend"><span><i style="background:var(--green)"></i>Estoy</span><span><i style="background:var(--orange)"></i>Llego, pero tarde</span><span><i style="background:var(--red)"></i>No estoy</span></div>
+  <div class="section" id="avisos" hidden></div>
+
+  <div class="section">
+    <div class="week-head">
+      <div class="section-title" id="sem-tit">Esta semana</div>
+      <span class="range" id="sem-rango"></span>
+      <div class="nav">
+        <button type="button" class="hoy-btn" id="sem-hoy" hidden>Hoy</button>
+        <button type="button" id="sem-prev" aria-label="Semana anterior">‹</button>
+        <button type="button" id="sem-next" aria-label="Semana siguiente">›</button>
+      </div>
+    </div>
+    <div class="card week" id="semana"></div>
+    <div class="legend"><span>🏠 En casa</span><span>🕒 Llego tarde</span><span>🍱 Me llevo tupper</span><span>👨‍🍳 Puedo cocinar</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Precio de la luz</div>
+    <div class="card luz">
+      <div class="seg" role="group" aria-label="Día">
+        <button type="button" id="b-hoy" aria-pressed="true">Hoy</button>
+        <button type="button" id="b-man" aria-pressed="false">Mañana</button>
+      </div>
+      <div id="luz-body"></div>
+    </div>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* ====================== TURNOS ======================
+   comida / cena: "casa" | "tarde" | "fuera"
+   cocina: true | false | "laborable" (solo lun–vie) | null (no se muestra)
+   ⚠️ Cambiar las claves por los códigos reales de Turnos */
+const TURNOS = {
+  M:  { nombre:"Mañana",             color:"var(--t-man)", corto:"Mañana",   comida:"tarde", cena:"casa",  cocina:false },
+  P:  { nombre:"Jornada partida",    color:"var(--t-par)", corto:"Partida",  comida:"casa",  cena:"casa",  cocina:false },
+  MD: { nombre:"Mediodía",           color:"var(--t-med)", corto:"Mediodía", comida:"fuera", cena:"casa",  cocina:false },
+  T:  { nombre:"Tarde",              color:"var(--t-tar)", corto:"Tarde",    comida:"casa",  cena:"fuera", cocina:true  },
+  L:  { nombre:"Libranza",           color:"var(--t-lib)", corto:"Libre",    comida:"casa",  cena:"casa",  cocina:"laborable" },
+  V:  { nombre:"Vacaciones",         color:"var(--t-vac)", corto:"Vacas",    comida:"casa",  cena:"casa",  cocina:null },
+  DA: { nombre:"Días acumulados",    color:"var(--t-otro)", corto:"Acum.",    comida:"casa",  cena:"casa",  cocina:null },
+  AP: { nombre:"Asuntos propios",    color:"var(--t-otro)", corto:"A. prop.", comida:"casa",  cena:"casa",  cocina:null },
+  HE: { nombre:"Día por hora extra", color:"var(--t-otro)", corto:"H. extra", comida:"casa",  cena:"casa",  cocina:null },
+  B:  { nombre:"Baja",               color:"var(--t-baja)", corto:"Baja",     comida:"casa",  cena:"casa",  cocina:null },
+};
+const CAMBIO_DE_DIA = 22; // desde las 22:00 se muestra el día siguiente
+
+let turnosEjemplo = true;
+async function cargarTurnos(desde, dias){
+  // TODO: Firestore + overrides de dashboard-overrides/{fecha}
+  const patron = ["T","T","MD","M","P","L","L"]; // lun..dom (ejemplo)
+  const out = {};
+  for(let i=0;i<dias;i++){ const d=addDays(desde,i); out[iso(d)] = patron[(d.getDay()+6)%7]; }
+  return out;
+}
+
+/* ====================== LUZ (Red Eléctrica · PVPC) ======================
+   Devuelve 24 precios en €/kWh, o null si aún no están publicados (mañana: hacia las 20:15). */
+let luzEjemplo = false;
+const EJEMPLO_HOY = [.112,.104,.098,.095,.094,.099,.118,.142,.151,.128,.096,.081,.074,.071,.073,.082,.104,.139,.176,.198,.204,.187,.158,.131];
+const EJEMPLO_MAN = [.118,.109,.101,.097,.096,.102,.124,.149,.146,.117,.088,.072,.066,.063,.068,.079,.101,.133,.169,.191,.196,.181,.152,.127];
+async function cargarLuz(dia, ejemplo){
+  try{
+    const f = iso(dia);
+    const r = await fetch(`https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=${f}T00:00&end_date=${f}T23:59&time_trunc=hour`);
+    if(!r.ok) return null;
+    const j = await r.json();
+    const s = j.included?.find(x => /PVPC/i.test(x.type) || x.id === "1001");
+    if(!s) return null;
+    const p = Array(24).fill(null);
+    s.attributes.values.forEach(v => { p[new Date(v.datetime).getHours()] = v.value/1000; });
+    return p.some(v=>v==null) ? null : p;
+  }catch(e){ luzEjemplo = true; return ejemplo; } // sin red (artifact): ejemplo
+}
+
+/* ====================== FRASES DEL DÍA ====================== */
+/* 387 frases en orden mezclado: no se repite ninguna en un año y cada año cambian de fecha */
+const FRASES = [
+  {"t": "Hoy toca mirar el móvil un poco menos.", "a": "Fede"},
+  {"t": "Un buen café arregla más cosas de las que parece.", "a": "Fede"},
+  {"t": "Más sabe el diablo por viejo que por diablo.", "a": "Refranero"},
+  {"t": "Con buena compañía, cualquier comida es un banquete.", "a": "Fede"},
+  {"t": "Del dicho al hecho hay mucho trecho.", "a": "Refranero"},
+  {"t": "Quien ordena un cajón, ordena un poco la cabeza.", "a": "Fede"},
+  {"t": "Lo que se hace con cariño se nota.", "a": "Fede"},
+  {"t": "Las rutinas aburridas sostienen los días bonitos.", "a": "Fede"},
+  {"t": "Hoy no hay que poder con todo.", "a": "Fede"},
+  {"t": "Una buena lista de la compra ahorra tres viajes.", "a": "Fede"},
+  {"t": "Lo que más importa no sale en las noticias.", "a": "Fede"},
+  {"t": "Cada día se aprende algo nuevo.", "a": "Refranero"},
+  {"t": "Cada oveja con su pareja.", "a": "Refranero"},
+  {"t": "No hay atajo sin trabajo.", "a": "Refranero"},
+  {"t": "Volver a casa siempre es la mejor parte del día.", "a": "Fede"},
+  {"t": "Ver para creer.", "a": "Refranero"},
+  {"t": "Ten paciencia y aguanta: este dolor te será útil algún día.", "a": "Ovidio"},
+  {"t": "Mañana será otro día.", "a": "Refranero"},
+  {"t": "Mente sana en cuerpo sano.", "a": "Juvenal"},
+  {"t": "Bien predica quien bien vive.", "a": "Miguel de Cervantes"},
+  {"t": "No es oro todo lo que reluce.", "a": "Refranero"},
+  {"t": "Quien canta, sus males espanta.", "a": "Refranero"},
+  {"t": "Las cosas claras y el chocolate espeso.", "a": "Refranero"},
+  {"t": "Pequeños pasos, todos los días.", "a": "Fede"},
+  {"t": "Una buena siesta es una forma de sabiduría.", "a": "Fede"},
+  {"t": "Dime con quién andas y te diré quién eres.", "a": "Refranero"},
+  {"t": "Una sonrisa por la mañana marca el resto del día.", "a": "Fede"},
+  {"t": "A falta de pan, buenas son tortas.", "a": "Refranero"},
+  {"t": "A buen entendedor, pocas palabras bastan.", "a": "Refranero"},
+  {"t": "Lo poco agrada y lo mucho enfada.", "a": "Refranero"},
+  {"t": "A caballo regalado no le mires el diente.", "a": "Refranero"},
+  {"t": "No dejes para mañana lo que puedas hacer hoy.", "a": "Refranero"},
+  {"t": "Una golondrina no hace verano.", "a": "Refranero"},
+  {"t": "Si hay tiempo para preocuparse, hay tiempo para un paseo.", "a": "Fede"},
+  {"t": "Despacito y buena letra: el hacer las cosas bien importa más que el hacerlas.", "a": "Antonio Machado"},
+  {"t": "No todo tiene que ser productivo para ser valioso.", "a": "Fede"},
+  {"t": "No hace falta hacerlo perfecto. Hace falta hacerlo.", "a": "Fede"},
+  {"t": "Los lunes también se acaban.", "a": "Fede"},
+  {"t": "De los escarmentados nacen los avisados.", "a": "Refranero"},
+  {"t": "Nunca es tarde para aprender.", "a": "Refranero"},
+  {"t": "Un buen día no necesita grandes planes.", "a": "Fede"},
+  {"t": "Quien guarda, halla.", "a": "Refranero"},
+  {"t": "Lo que no me mata me hace más fuerte.", "a": "Friedrich Nietzsche"},
+  {"t": "Saber parar a tiempo también es saber.", "a": "Fede"},
+  {"t": "Los mejores días no se planean: se aprovechan.", "a": "Fede"},
+  {"t": "El que avisa no es traidor.", "a": "Refranero"},
+  {"t": "Más vale estar solo que mal acompañado.", "a": "Refranero"},
+  {"t": "La cara es el espejo del alma.", "a": "Refranero"},
+  {"t": "Vale más saber algo de todo que saberlo todo de una sola cosa.", "a": "Blaise Pascal"},
+  {"t": "Puedo resistirlo todo, excepto la tentación.", "a": "Oscar Wilde"},
+  {"t": "Las mejores conversaciones empiezan con un «¿qué tal el día?».", "a": "Fede"},
+  {"t": "El tiempo huye sin remedio.", "a": "Virgilio"},
+  {"t": "Quien con niños se acuesta, mojado se levanta.", "a": "Refranero"},
+  {"t": "Sarna con gusto no pica.", "a": "Refranero"},
+  {"t": "Una tortilla bien hecha es un pequeño milagro.", "a": "Fede"},
+  {"t": "No hay mal que por bien no venga.", "a": "Refranero"},
+  {"t": "Paciencia y barajar.", "a": "Miguel de Cervantes"},
+  {"t": "Hoy el mérito es llegar al final del día con una sonrisa.", "a": "Fede"},
+  {"t": "En el término medio está la virtud.", "a": "Refranero"},
+  {"t": "Una casa no necesita ser perfecta para ser un hogar.", "a": "Fede"},
+  {"t": "Las cosas importantes se hablan en la cocina.", "a": "Fede"},
+  {"t": "No por mucho madrugar amanece más temprano.", "a": "Refranero"},
+  {"t": "Cada día es una oportunidad para hacerlo un poco mejor.", "a": "Fede"},
+  {"t": "Aunque la mona se vista de seda, mona se queda.", "a": "Refranero"},
+  {"t": "Quien madruga, Dios le ayuda.", "a": "Refranero"},
+  {"t": "Ni mesa sin pan, ni ejército sin capitán.", "a": "Refranero"},
+  {"t": "Tómate el café sentada. Por lo menos uno.", "a": "Fede"},
+  {"t": "Obras son amores, que no buenas razones.", "a": "Refranero"},
+  {"t": "La diligencia es madre de la buena ventura.", "a": "Miguel de Cervantes"},
+  {"t": "Los niños aprenden de lo que hacemos, no de lo que decimos.", "a": "Fede"},
+  {"t": "Los planes pequeños también hacen grandes recuerdos.", "a": "Fede"},
+  {"t": "Al freír será el reír.", "a": "Refranero"},
+  {"t": "Las cosas de palacio van despacio.", "a": "Refranero"},
+  {"t": "Más vale una vez colorado que ciento amarillo.", "a": "Refranero"},
+  {"t": "No pasa nada por repetir menú si a todos les gusta.", "a": "Fede"},
+  {"t": "Los recuerdos se hacen en los días normales.", "a": "Fede"},
+  {"t": "Agua que no has de beber, déjala correr.", "a": "Refranero"},
+  {"t": "Lo que no mata, engorda.", "a": "Refranero"},
+  {"t": "Lo que hoy cuesta, mañana sale solo.", "a": "Fede"},
+  {"t": "El fin de semana siempre está más cerca de lo que parece.", "a": "Fede"},
+  {"t": "Muchos pocos hacen un mucho.", "a": "Refranero"},
+  {"t": "Cada cosa a su tiempo y los nabos en adviento.", "a": "Refranero"},
+  {"t": "Un buen libro es un viaje sin maletas.", "a": "Fede"},
+  {"t": "La constancia gana a la prisa.", "a": "Fede"},
+  {"t": "La unión hace la fuerza.", "a": "Refranero"},
+  {"t": "Quien tiene un amigo tiene un tesoro.", "a": "Refranero"},
+  {"t": "Yo soy yo y mi circunstancia.", "a": "José Ortega y Gasset"},
+  {"t": "En abril, aguas mil.", "a": "Refranero"},
+  {"t": "Hoy, haz las paces con lo que no salió como querías.", "a": "Fede"},
+  {"t": "De grano en grano llena la gallina el buche.", "a": "Refranero"},
+  {"t": "Más vale pájaro en mano que ciento volando.", "a": "Refranero"},
+  {"t": "Con pan y vino se anda el camino.", "a": "Refranero"},
+  {"t": "Ojos que no ven, corazón que no siente.", "a": "Refranero"},
+  {"t": "La cocina es el corazón de la casa.", "a": "Fede"},
+  {"t": "Hoy se perdonan los calcetines por el suelo. Solo hoy.", "a": "Fede"},
+  {"t": "El tiempo todo lo cura.", "a": "Refranero"},
+  {"t": "La paciencia con los niños también es entrenamiento.", "a": "Fede"},
+  {"t": "Quien no arriesga no gana.", "a": "Refranero"},
+  {"t": "Que hoy no falte un rato de risa en la mesa.", "a": "Fede"},
+  {"t": "Gato escaldado del agua fría huye.", "a": "Refranero"},
+  {"t": "Dadme un punto de apoyo y moveré el mundo.", "a": "Arquímedes"},
+  {"t": "El saber no ocupa lugar.", "a": "Refranero"},
+  {"t": "Vísteme despacio, que tengo prisa.", "a": "Dicho popular"},
+  {"t": "El que tiene boca se equivoca.", "a": "Refranero"},
+  {"t": "Todo es más fácil después de comer.", "a": "Fede"},
+  {"t": "Soy humano: nada de lo humano me es ajeno.", "a": "Terencio"},
+  {"t": "Hoy, un detalle para alguien de casa.", "a": "Fede"},
+  {"t": "El mejor sitio del mundo es el sofá de casa.", "a": "Fede"},
+  {"t": "No hace falta tenerlo todo claro para dar el primer paso.", "a": "Fede"},
+  {"t": "Lo sencillo suele ser lo que mejor funciona.", "a": "Fede"},
+  {"t": "No se ganó Zamora en una hora.", "a": "Refranero"},
+  {"t": "Roma no se hizo en un día.", "a": "Refranero"},
+  {"t": "Al pan, pan, y al vino, vino.", "a": "Refranero"},
+  {"t": "Tanto va el cántaro a la fuente que al final se rompe.", "a": "Refranero"},
+  {"t": "Toda la vida es sueño, y los sueños, sueños son.", "a": "Calderón de la Barca"},
+  {"t": "Que hoy no falte una canción que te guste.", "a": "Fede"},
+  {"t": "Más vale tarde que nunca.", "a": "Refranero"},
+  {"t": "A veces lo más productivo es no hacer nada.", "a": "Fede"},
+  {"t": "Entre col y col, lechuga.", "a": "Refranero"},
+  {"t": "Quien ha empezado ya tiene hecha la mitad.", "a": "Horacio"},
+  {"t": "Echando a perder se aprende.", "a": "Refranero"},
+  {"t": "No nos perturban las cosas, sino las opiniones que tenemos de ellas.", "a": "Epicteto"},
+  {"t": "Hay que cultivar nuestro jardín.", "a": "Voltaire"},
+  {"t": "Donde comen dos, comen tres.", "a": "Refranero"},
+  {"t": "Hoy, un capítulo de algo que te guste.", "a": "Fede"},
+  {"t": "Hoy toca agradecer algo pequeño.", "a": "Fede"},
+  {"t": "Todo tiene arreglo, menos la muerte.", "a": "Refranero"},
+  {"t": "Más vale maña que fuerza.", "a": "Refranero"},
+  {"t": "Ayúdate y Dios te ayudará.", "a": "Refranero"},
+  {"t": "Hay más días que longanizas.", "a": "Refranero"},
+  {"t": "Tripas llevan corazón, que no corazón tripas.", "a": "Refranero"},
+  {"t": "Primero es la obligación que la devoción.", "a": "Refranero"},
+  {"t": "Cría fama y échate a dormir.", "a": "Refranero"},
+  {"t": "Sin música, la vida sería un error.", "a": "Friedrich Nietzsche"},
+  {"t": "Si algo se olvida, que no sea el pan.", "a": "Fede"},
+  {"t": "Hoy por ti, mañana por mí.", "a": "Refranero"},
+  {"t": "El que la sigue, la consigue.", "a": "Refranero"},
+  {"t": "Hoy no hace falta correr. Solo seguir.", "a": "Fede"},
+  {"t": "Bien hecho es mejor que bien dicho.", "a": "Benjamin Franklin"},
+  {"t": "Un poco de chocolate nunca ha hecho daño a nadie.", "a": "Fede"},
+  {"t": "Lo que no es bueno para la colmena tampoco es bueno para la abeja.", "a": "Marco Aurelio"},
+  {"t": "Las cenas improvisadas son las más recordadas.", "a": "Fede"},
+  {"t": "Empieza por el principio, sigue hasta llegar al final y allí te paras.", "a": "Lewis Carroll"},
+  {"t": "Por San Blas, la cigüeña verás.", "a": "Refranero"},
+  {"t": "Cuando marzo mayea, mayo marcea.", "a": "Refranero"},
+  {"t": "Si los niños ríen, la tarde ha salido bien.", "a": "Fede"},
+  {"t": "El buen paño en el arca se vende.", "a": "Refranero"},
+  {"t": "El tiempo es oro.", "a": "Benjamin Franklin"},
+  {"t": "Las apariencias engañan.", "a": "Refranero"},
+  {"t": "La mejor cama es la de casa después de un día largo.", "a": "Fede"},
+  {"t": "El mejor plan suele ser el que no hay que planear.", "a": "Fede"},
+  {"t": "Mañana te alegrarás de lo que hagas hoy.", "a": "Fede"},
+  {"t": "Aprender sin pensar es inútil; pensar sin aprender es peligroso.", "a": "Confucio"},
+  {"t": "Hoy, una cosa bien hecha ya es un buen día.", "a": "Fede"},
+  {"t": "Cada uno es artífice de su ventura.", "a": "Miguel de Cervantes"},
+  {"t": "Gracias por todo lo que haces y nadie ve.", "a": "Fede"},
+  {"t": "Uvas con queso saben a beso.", "a": "Refranero"},
+  {"t": "Un poco de ejercicio hoy es un poco de buen humor mañana.", "a": "Fede"},
+  {"t": "Si mañana es mejor, hoy habrá valido la pena.", "a": "Fede"},
+  {"t": "Para aprender, perder.", "a": "Refranero"},
+  {"t": "Pide ayuda. Para eso estamos.", "a": "Fede"},
+  {"t": "Camarón que se duerme se lo lleva la corriente.", "a": "Refranero"},
+  {"t": "Lo prometido es deuda.", "a": "Refranero"},
+  {"t": "Gota a gota, la mar se agota.", "a": "Refranero"},
+  {"t": "El mejor momento del día es el que está pasando.", "a": "Fede"},
+  {"t": "Haz hoy algo que tu yo de mañana agradezca.", "a": "Fede"},
+  {"t": "A Dios rogando y con el mazo dando.", "a": "Refranero"},
+  {"t": "Hoy, lo que tenga que ser, será.", "a": "Fede"},
+  {"t": "Un viaje de mil millas comienza con un solo paso.", "a": "Lao Tse"},
+  {"t": "Un vaso de agua más. El cuerpo lo agradece.", "a": "Fede"},
+  {"t": "No hay rosa sin espinas.", "a": "Refranero"},
+  {"t": "Cada maestrillo tiene su librillo.", "a": "Refranero"},
+  {"t": "A palabras necias, oídos sordos.", "a": "Refranero"},
+  {"t": "Mientras se aplaza, la vida pasa.", "a": "Séneca"},
+  {"t": "Quien deja la mesa puesta deja el día encaminado.", "a": "Fede"},
+  {"t": "Hoy, haz algo solo porque te apetece.", "a": "Fede"},
+  {"t": "Después de la tormenta siempre llega la calma.", "a": "Refranero"},
+  {"t": "Hoy, lo justo y con buena cara.", "a": "Fede"},
+  {"t": "Nunca es tarde si la dicha es buena.", "a": "Refranero"},
+  {"t": "Más vale llegar a tiempo que rondar un año.", "a": "Refranero"},
+  {"t": "El que algo quiere, algo le cuesta.", "a": "Refranero"},
+  {"t": "Hoy, menos pantallas y más juegos de mesa.", "a": "Fede"},
+  {"t": "La pluma es la lengua del alma.", "a": "Miguel de Cervantes"},
+  {"t": "Cada día trae su afán.", "a": "Refranero"},
+  {"t": "Cuando el río suena, agua lleva.", "a": "Refranero"},
+  {"t": "Hombre prevenido vale por dos.", "a": "Refranero"},
+  {"t": "Lo bueno, si breve, dos veces bueno.", "a": "Baltasar Gracián"},
+  {"t": "Sin prisa, pero sin pausa.", "a": "Goethe"},
+  {"t": "Con paciencia se gana el cielo.", "a": "Refranero"},
+  {"t": "La gota horada la piedra.", "a": "Ovidio"},
+  {"t": "Una buena conversación arregla más que mil mensajes.", "a": "Fede"},
+  {"t": "El hábito no hace al monje.", "a": "Refranero"},
+  {"t": "Empieza por lo que más pereza da y el resto irá cuesta abajo.", "a": "Fede"},
+  {"t": "Los días tranquilos también son una victoria.", "a": "Fede"},
+  {"t": "Nada en exceso.", "a": "Inscripción del templo de Delfos"},
+  {"t": "Que el día de hoy no te pille sin un rato para ti.", "a": "Fede"},
+  {"t": "A veces el mejor consejo es irse a dormir pronto.", "a": "Fede"},
+  {"t": "Más vale un gusto que cien panderos.", "a": "Refranero"},
+  {"t": "Más vale prevenir que curar.", "a": "Refranero"},
+  {"t": "Haz lo que digo y no lo que hago.", "a": "Refranero"},
+  {"t": "De noche, todos los gatos son pardos.", "a": "Refranero"},
+  {"t": "Un poco de orden, un poco de juego, un poco de descanso.", "a": "Fede"},
+  {"t": "Llegué, vi, vencí.", "a": "Julio César"},
+  {"t": "Menos lista de tareas, más vida.", "a": "Fede"},
+  {"t": "Más vale un hoy que dos mañanas.", "a": "Refranero"},
+  {"t": "Pocas cosas hay mejores que una tarde sin prisas.", "a": "Fede"},
+  {"t": "Dios aprieta, pero no ahoga.", "a": "Refranero"},
+  {"t": "Mucho ruido y pocas nueces.", "a": "Refranero"},
+  {"t": "Borrón y cuenta nueva.", "a": "Refranero"},
+  {"t": "Más vale caer en gracia que ser gracioso.", "a": "Refranero"},
+  {"t": "Mientras enseñamos, aprendemos.", "a": "Séneca"},
+  {"t": "Hoy, algo de verdura. Tampoco hace falta exagerar.", "a": "Fede"},
+  {"t": "Para gustos, los colores.", "a": "Refranero"},
+  {"t": "Errar es humano.", "a": "Proverbio latino"},
+  {"t": "Un mensaje bonito a alguien cuesta diez segundos.", "a": "Fede"},
+  {"t": "Si tienes un jardín y una biblioteca, tienes todo lo que necesitas.", "a": "Cicerón"},
+  {"t": "Hoy cuenta. Aunque sea martes.", "a": "Fede"},
+  {"t": "Agua pasada no mueve molino.", "a": "Refranero"},
+  {"t": "Más vale ser cabeza de ratón que cola de león.", "a": "Refranero"},
+  {"t": "Más vale un toma que dos te daré.", "a": "Refranero"},
+  {"t": "Si te cuesta, es que estás creciendo.", "a": "Fede"},
+  {"t": "Esta casa funciona gracias a ti.", "a": "Fede"},
+  {"t": "Más vale saber que haber.", "a": "Refranero"},
+  {"t": "Haz bien y no mires a quién.", "a": "Refranero"},
+  {"t": "Si hoy toca madrugar, mañana toca remolonear.", "a": "Fede"},
+  {"t": "Hoy, una llamada a alguien que hace tiempo que no oyes.", "a": "Fede"},
+  {"t": "Lo que no se empieza no se acaba.", "a": "Refranero"},
+  {"t": "Si hoy llueve, mejor excusa para una manta y una peli.", "a": "Fede"},
+  {"t": "Cada uno sabe dónde le aprieta el zapato.", "a": "Refranero"},
+  {"t": "El que no llora no mama.", "a": "Refranero"},
+  {"t": "Querer es poder.", "a": "Refranero"},
+  {"t": "Un paseo corto vale más que una excusa larga.", "a": "Fede"},
+  {"t": "La familia es el mejor equipo en el que jugar.", "a": "Fede"},
+  {"t": "Hasta la muerte, todo es vida.", "a": "Miguel de Cervantes"},
+  {"t": "El mejor ingrediente de cualquier receta es el hambre.", "a": "Fede"},
+  {"t": "No es pobre el que tiene poco, sino el que mucho desea.", "a": "Séneca"},
+  {"t": "Paso a paso se va lejos.", "a": "Refranero"},
+  {"t": "Hoy se vale empezar tarde y acabar bien.", "a": "Fede"},
+  {"t": "Las mejores ideas llegan fregando los platos.", "a": "Fede"},
+  {"t": "El movimiento se demuestra andando.", "a": "Refranero"},
+  {"t": "Aprovecha el día.", "a": "Horacio"},
+  {"t": "Descansar también es avanzar.", "a": "Fede"},
+  {"t": "Lo que no depende de ti, déjalo marchar.", "a": "Fede"},
+  {"t": "Quien come y deja, dos veces pone la mesa.", "a": "Refranero"},
+  {"t": "Cerrar el día con la cocina recogida es un regalo para mañana.", "a": "Fede"},
+  {"t": "Hoy toca terminar algo que dejamos a medias.", "a": "Fede"},
+  {"t": "Caminante, no hay camino, se hace camino al andar.", "a": "Antonio Machado"},
+  {"t": "Apresúrate despacio.", "a": "César Augusto"},
+  {"t": "Todo pasa y todo queda, pero lo nuestro es pasar.", "a": "Antonio Machado"},
+  {"t": "La mejor receta es la que se come entera.", "a": "Fede"},
+  {"t": "A grandes males, grandes remedios.", "a": "Refranero"},
+  {"t": "Nadie se baña dos veces en el mismo río.", "a": "Heráclito"},
+  {"t": "Contigo, pan y cebolla.", "a": "Refranero"},
+  {"t": "Mirar atrás está bien, siempre que no te quedes ahí.", "a": "Fede"},
+  {"t": "A la tercera va la vencida.", "a": "Refranero"},
+  {"t": "De tal palo, tal astilla.", "a": "Refranero"},
+  {"t": "Más vale una onza de prevención que una libra de cura.", "a": "Benjamin Franklin"},
+  {"t": "El tiempo pone a cada uno en su sitio.", "a": "Refranero"},
+  {"t": "El mejor momento para empezar fue ayer. El segundo, ahora.", "a": "Fede"},
+  {"t": "Desayuna como un rey, come como un príncipe y cena como un mendigo.", "a": "Refranero"},
+  {"t": "No hay viento favorable para quien no sabe a qué puerto va.", "a": "Séneca"},
+  {"t": "Si te equivocas, que sea intentándolo.", "a": "Fede"},
+  {"t": "Hay que celebrar también los días sin nada que celebrar.", "a": "Fede"},
+  {"t": "En casa del herrero, cuchillo de palo.", "a": "Refranero"},
+  {"t": "No compares tu día con el de nadie.", "a": "Fede"},
+  {"t": "Lo que hoy siembras en casa, mañana lo recoges en sonrisas.", "a": "Fede"},
+  {"t": "Los niños no recuerdan la casa limpia; recuerdan los ratos juntos.", "a": "Fede"},
+  {"t": "Una cosa cada vez. Las demás pueden esperar.", "a": "Fede"},
+  {"t": "Un rato al aire libre lo cambia todo.", "a": "Fede"},
+  {"t": "Hoy, menos prisa y más ganas.", "a": "Fede"},
+  {"t": "Quien mucho abarca poco aprieta.", "a": "Refranero"},
+  {"t": "La práctica hace al maestro.", "a": "Refranero"},
+  {"t": "La paciencia todo lo alcanza.", "a": "Santa Teresa de Jesús"},
+  {"t": "Hoy es un buen día para empezar algo pequeño.", "a": "Fede"},
+  {"t": "Las sobremesas largas no son tiempo perdido.", "a": "Fede"},
+  {"t": "Hoy, algo de sol en la cara.", "a": "Fede"},
+  {"t": "Hoy, menos ruido y más calma.", "a": "Fede"},
+  {"t": "Hoy alguien en casa necesita un abrazo. Repártelos.", "a": "Fede"},
+  {"t": "Hasta el cuarenta de mayo no te quites el sayo.", "a": "Refranero"},
+  {"t": "Zapatero, a tus zapatos.", "a": "Refranero"},
+  {"t": "Las prisas no son buenas consejeras.", "a": "Refranero"},
+  {"t": "El orden de la casa puede esperar. La siesta, no siempre.", "a": "Fede"},
+  {"t": "Hoy, ventanas abiertas y aire fresco.", "a": "Fede"},
+  {"t": "Un plato caliente arregla muchos días fríos.", "a": "Fede"},
+  {"t": "No hay mal que cien años dure.", "a": "Refranero"},
+  {"t": "Poderoso caballero es don Dinero.", "a": "Francisco de Quevedo"},
+  {"t": "Donde una puerta se cierra, otra se abre.", "a": "Miguel de Cervantes"},
+  {"t": "Comer y rascar, todo es empezar.", "a": "Refranero"},
+  {"t": "Preguntando se llega a Roma.", "a": "Refranero"},
+  {"t": "Cada loco con su tema.", "a": "Refranero"},
+  {"t": "Tu esfuerzo de hoy no se ve, pero cuenta.", "a": "Fede"},
+  {"t": "Hoy, un poco más de paciencia con todos. Incluida tú.", "a": "Fede"},
+  {"t": "Cuida de ti como cuidas de todos.", "a": "Fede"},
+  {"t": "Mejor hecho que perfecto.", "a": "Fede"},
+  {"t": "Hoy, a la hora de cenar, cero móviles.", "a": "Fede"},
+  {"t": "Haciendo y deshaciendo se va aprendiendo.", "a": "Refranero"},
+  {"t": "Arrieros somos y en el camino nos encontraremos.", "a": "Refranero"},
+  {"t": "Cada día con la familia suma, aunque no lo parezca.", "a": "Fede"},
+  {"t": "El mejor postre es la sobremesa.", "a": "Fede"},
+  {"t": "Quien tiene a su gente cerca tiene casi todo.", "a": "Fede"},
+  {"t": "Hoy, una cosa que no hayas hecho nunca.", "a": "Fede"},
+  {"t": "Celebra lo que ya has conseguido esta semana.", "a": "Fede"},
+  {"t": "Al mal tiempo, buena cara.", "a": "Refranero"},
+  {"t": "Perro ladrador, poco mordedor.", "a": "Refranero"},
+  {"t": "Si hay croquetas, el día ya ha merecido la pena.", "a": "Fede"},
+  {"t": "Lo que hoy no se acaba, mañana se termina.", "a": "Fede"},
+  {"t": "Una casa con risas es una casa bien hecha.", "a": "Fede"},
+  {"t": "Las mejores cosas de casa no se compran.", "a": "Fede"},
+  {"t": "Hoy toca ser generosa con los demás y contigo.", "a": "Fede"},
+  {"t": "Ningún viernes llegó antes por mirar el calendario.", "a": "Fede"},
+  {"t": "La fortuna ayuda a los audaces.", "a": "Virgilio"},
+  {"t": "Mientras hay vida, hay esperanza.", "a": "Refranero"},
+  {"t": "El trabajo se queda en el trabajo. En casa, casa.", "a": "Fede"},
+  {"t": "Hoy toca reírse de algo que salió mal.", "a": "Fede"},
+  {"t": "A veces, ser fuerte es saber descansar.", "a": "Fede"},
+  {"t": "Lo que se habla a tiempo se arregla rápido.", "a": "Fede"},
+  {"t": "Lo que hoy se comparte, sabe mejor.", "a": "Fede"},
+  {"t": "Las cosas salen mejor con música de fondo.", "a": "Fede"},
+  {"t": "Hay días de avanzar y días de aguantar. Los dos valen.", "a": "Fede"},
+  {"t": "Lo que hoy se ríe en casa, mañana se recuerda.", "a": "Fede"},
+  {"t": "Año de nieves, año de bienes.", "a": "Refranero"},
+  {"t": "El caos de casa también es nuestro.", "a": "Fede"},
+  {"t": "Hoy, un rato de silencio. Sienta bien.", "a": "Fede"},
+  {"t": "La casa se queda pequeña cuando falta alguien.", "a": "Fede"},
+  {"t": "Quien llega a casa con hambre, llega con ganas de veros.", "a": "Fede"},
+  {"t": "Un buen día empieza con una buena tostada.", "a": "Fede"},
+  {"t": "Lo importante cabe en una mesa con la familia alrededor.", "a": "Fede"},
+  {"t": "A buen hambre no hay pan duro.", "a": "Refranero"},
+  {"t": "Hoy toca decir que no a algo. Sin culpa.", "a": "Fede"},
+  {"t": "Lo bonito de hoy merece una foto.", "a": "Fede"},
+  {"t": "El tiempo con los hijos pasa rápido. Disfrútalo despacio.", "a": "Fede"},
+  {"t": "El que ríe el último ríe mejor.", "a": "Refranero"},
+  {"t": "Bien está lo que bien acaba.", "a": "William Shakespeare"},
+  {"t": "Respira. Lo urgente casi nunca es tan urgente.", "a": "Fede"},
+  {"t": "Si te paras, que sea para mirar lo lejos que has llegado.", "a": "Fede"},
+  {"t": "Quien a buen árbol se arrima, buena sombra le cobija.", "a": "Refranero"},
+  {"t": "Sobre gustos no hay nada escrito.", "a": "Refranero"},
+  {"t": "La libertad es uno de los más preciosos dones que a los hombres dieron los cielos.", "a": "Miguel de Cervantes"},
+  {"t": "Hablando se entiende la gente.", "a": "Refranero"},
+  {"t": "La calma también se contagia.", "a": "Fede"},
+  {"t": "Nadie lo hace todo bien. Todos lo hacemos lo mejor que podemos.", "a": "Fede"},
+  {"t": "Las penas, con pan, son menos.", "a": "Refranero"},
+  {"t": "Ríete un poco más de lo que pensabas.", "a": "Fede"},
+  {"t": "El último café de la tarde siempre es el que mejor sabe.", "a": "Fede"},
+  {"t": "Nadie nace sabiendo.", "a": "Refranero"},
+  {"t": "Hoy, menos quejas y más cosas bonitas que contar.", "a": "Fede"},
+  {"t": "Las ganas aparecen cuando empiezas.", "a": "Fede"},
+  {"t": "Estamos hechos de la misma materia que los sueños.", "a": "William Shakespeare"},
+  {"t": "Quien bien siembra, bien recoge.", "a": "Refranero"},
+  {"t": "Conócete a ti mismo.", "a": "Inscripción del templo de Delfos"},
+  {"t": "Hay cosas que solo se arreglan con tiempo. Dáselo.", "a": "Fede"},
+  {"t": "Cada día que acaba bien es una pequeña victoria.", "a": "Fede"},
+  {"t": "Lo que mucho vale, mucho cuesta.", "a": "Refranero"},
+  {"t": "Lo que se aprende en la cuna, siempre dura.", "a": "Refranero"},
+  {"t": "A lo hecho, pecho.", "a": "Refranero"},
+  {"t": "En boca cerrada no entran moscas.", "a": "Refranero"},
+  {"t": "Quien no se consuela es porque no quiere.", "a": "Refranero"},
+  {"t": "Lo cortés no quita lo valiente.", "a": "Refranero"},
+  {"t": "Más vale poco y bueno que mucho y malo.", "a": "Refranero"},
+  {"t": "Quien bien te quiere te guarda plato.", "a": "Fede"},
+  {"t": "El orden llega solo cuando cada uno recoge lo suyo.", "a": "Fede"},
+  {"t": "El día mejora mucho con una ducha caliente.", "a": "Fede"},
+  {"t": "El que lee mucho y anda mucho, ve mucho y sabe mucho.", "a": "Miguel de Cervantes"},
+  {"t": "El cansancio de hoy es la tranquilidad de mañana.", "a": "Fede"},
+  {"t": "Si he visto más lejos, es porque me he subido a hombros de gigantes.", "a": "Isaac Newton"},
+  {"t": "Lo que bien se aprende, nunca se olvida.", "a": "Refranero"},
+  {"t": "Lo esencial es invisible a los ojos.", "a": "Antoine de Saint-Exupéry"},
+  {"t": "La suerte está echada.", "a": "Julio César"},
+  {"t": "Si el día va cuesta arriba, al menos se baja luego.", "a": "Fede"},
+  {"t": "Hoy es siempre todavía.", "a": "Antonio Machado"},
+  {"t": "Ande yo caliente y ríase la gente.", "a": "Refranero"},
+  {"t": "Si hoy no sale, mañana se vuelve a intentar.", "a": "Fede"},
+  {"t": "Hoy se cumple otra página del calendario. Hazla bonita.", "a": "Fede"},
+  {"t": "Lo que hoy parece un problema mañana será una anécdota.", "a": "Fede"},
+  {"t": "La vida va mejor con la nevera llena.", "a": "Fede"},
+  {"t": "Que nada te robe el desayuno tranquilo.", "a": "Fede"},
+  {"t": "Los días normales también cuentan.", "a": "Fede"},
+  {"t": "Si algo se tuerce, siempre queda la cena.", "a": "Fede"},
+  {"t": "Hoy, cero culpa por pedir pizza.", "a": "Fede"},
+  {"t": "Tu forma de hacer las cosas también está bien.", "a": "Fede"},
+  {"t": "Quien siembra, recoge.", "a": "Refranero"},
+  {"t": "Lo mejor es enemigo de lo bueno.", "a": "Voltaire"},
+  {"t": "Mañana, con calma, se verá todo distinto.", "a": "Fede"},
+  {"t": "Quien cocina con prisa, cocina dos veces.", "a": "Fede"},
+  {"t": "La lavadora puede esperar a la hora barata.", "a": "Fede"},
+  {"t": "Donde fueres, haz lo que vieres.", "a": "Refranero"},
+  {"t": "Barriga llena, corazón contento.", "a": "Refranero"}
+];
+
+/* ====================== UTILIDADES ====================== */
+function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+const laborable = d => d.getDay()>=1 && d.getDay()<=5;
+const cocinaDe = (t,d) => t.cocina==="laborable" ? (laborable(d)?true:null) : t.cocina;
+const DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const fmtFecha=new Intl.DateTimeFormat("es-ES",{weekday:"long",day:"numeric",month:"long"});
+const eur = v => v.toFixed(3).replace(".",",");
+const diasDesdeInicio = d => Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate()) - new Date(2026,9,27))/864e5);
+const EMO = { casa:"🏠", tarde:"🕒", fuera:"🍱" };
+const hh = h => `${String(h).padStart(2,"0")}:00`;
+
+/* ====================== WIDGETS COMIDA / CENA ====================== */
+function widget(tipo,t,d){
+  const estado=t[tipo], cocina=tipo==="comida"?cocinaDe(t,d):undefined;
+  const titulo = {
+    comida:{casa:"Como en casa", tarde:"Como en casa, pero tarde", fuera:"Como en el trabajo"},
+    cena:{casa:"Ceno en casa", tarde:"Ceno en casa, pero tarde", fuera:"No ceno en casa"},
+  }[tipo][estado];
+  const sub = estado==="fuera" ? `Me llevo la ${tipo} en tupper`
+            : estado==="tarde" ? `Llegaré cuando ya estéis ${tipo==="comida"?"comiendo":"cenando"}`
+            : cocina===true ? "Puedo hacer la comida" : cocina===false ? "No puedo hacer la comida" : "Contad conmigo en la mesa";
+  const filas = [];
+  if(tipo==="comida") filas.push(["👨‍🍳","Hacer la comida",
+    estado==="fuera"?"No": cocina===true?"Puedo": cocina===false?"No puedo":"Sin definir",
+    estado==="fuera"||cocina===false?"no": cocina===true?"ok":"na"]);
+  filas.push(["🍱","Tupper", estado==="fuera"?"Sí, me lo llevo":"No hace falta", estado==="fuera"?"warn":"na"]);
+
+  return `<div class="card meal ${estado}">
+    <div class="meal-head"><div class="tile">${tipo==="comida"?"☀️":"🌘"}</div><span>${tipo==="comida"?"Comida":"Cena"}</span><i class="status" aria-label="${estado==="casa"?"Estoy":estado==="tarde"?"Llego tarde":"No estoy"}"></i></div>
+    <h3>${titulo}<small>${sub}</small></h3>
+    <ul class="facts">${filas.map(([i,k,v,c])=>`<li><span class="ico">${i}</span><span class="k">${k}</span><span class="v ${c}">${v}</span></li>`).join("")}</ul>
+  </div>`;
+}
+
+/* ====================== RENDER ====================== */
+async function render(){
+  const ahora=new Date(), hoy=new Date(ahora.getFullYear(),ahora.getMonth(),ahora.getDate());
+  const turnos=await cargarTurnos(hoy,9);
+  const verManana=ahora.getHours()>=CAMBIO_DE_DIA;
+  const foco=verManana?addDays(hoy,1):hoy, tf=TURNOS[turnos[iso(foco)]]??TURNOS.L;
+
+  document.getElementById("titulo").textContent=verManana?"Mañana":"Hoy";
+  document.getElementById("fecha").textContent=fmtFecha.format(foco);
+  const L=FRASES.length, fr=FRASES[((diasDesdeInicio(foco)%L)+L)%L];
+  document.getElementById("frase").textContent=`“${fr.t}”`;
+  document.getElementById("autor").textContent=`— ${fr.a}`;
+  document.getElementById("meals").innerHTML=widget("comida",tf,foco)+widget("cena",tf,foco);
+
+  const sig=addDays(foco,1), ts=TURNOS[turnos[iso(sig)]]??TURNOS.L;
+  const que=[ts.comida==="fuera"&&"la comida", ts.cena==="fuera"&&"la cena"].filter(Boolean);
+  const av=document.getElementById("avisos");
+  if(que.length){
+    av.innerHTML=`<div class="card notice"><div class="notice-ico">🍱</div><div>
+      <b>${verManana?"Pasado mañana":"Mañana"} me llevo tupper</b>
+      <span>Necesito ${que.join(" y ")} preparada. Si cocinamos ${verManana?"mañana":"hoy"}, mejor hacer de más.</span></div></div>`;
+    av.hidden=false;
+  } else av.hidden=true;
+
+  await renderSemana();
+
+  LUZ.hoy = await cargarLuz(hoy, EJEMPLO_HOY);
+  LUZ.man = await cargarLuz(addDays(hoy,1), EJEMPLO_MAN);
+  renderLuz();
+
+  document.getElementById("foot").innerHTML=
+    `Turnos: ${turnosEjemplo?'<span class="ej">ejemplo</span>':"Turnos — Mediterráneo"} · Luz: ${luzEjemplo?'<span class="ej">ejemplo</span>':"Red Eléctrica"} · `+
+    ahora.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+}
+
+/* ====================== SEMANA ====================== */
+let semOffset=0; const SEM_MIN=-4, SEM_MAX=8;
+const fmtCorto=new Intl.DateTimeFormat("es-ES",{day:"numeric",month:"short"});
+async function renderSemana(){
+  const a=new Date(), hoy=new Date(a.getFullYear(),a.getMonth(),a.getDate());
+  const lunes=addDays(hoy,-((hoy.getDay()+6)%7)); // semana de lunes a domingo
+  const ini=addDays(lunes,semOffset*7), turnos=await cargarTurnos(ini,7);
+  let html="";
+  for(let i=0;i<7;i++){
+    const d=addDays(ini,i), t=TURNOS[turnos[iso(d)]]??TURNOS.L, c=cocinaDe(t,d), esHoy=iso(d)===iso(hoy);
+    html+=`<div class="col${esHoy?" today":""}${d.getDay()===0?" dom":""}" title="${t.nombre}">
+      <span class="dn">${esHoy?"Hoy":DIAS[d.getDay()]}</span>
+      <span class="dd">${d.getDate()}</span>
+      <span class="tn" style="--tc:${t.color}">${t.corto}</span>
+      <span class="bub ${t.comida}" aria-label="Comida">${EMO[t.comida]}</span>
+      <span class="bub ${t.cena}" aria-label="Cena">${EMO[t.cena]}</span>
+      <span class="bub ${c===true?"chef":"none"}">${c===true?"👨‍🍳":""}</span>
+    </div>`;
+  }
+  document.getElementById("semana").innerHTML=html;
+  const tit = semOffset===0?"Esta semana": semOffset===1?"Próxima semana": semOffset===-1?"Semana pasada":
+              semOffset>1?`Dentro de ${semOffset} semanas`:`Hace ${-semOffset} semanas`;
+  document.getElementById("sem-tit").textContent=tit;
+  document.getElementById("sem-rango").textContent=`${fmtCorto.format(ini)} – ${fmtCorto.format(addDays(ini,6))}`;
+  document.getElementById("sem-hoy").hidden=semOffset===0;
+  document.getElementById("sem-prev").disabled=semOffset<=SEM_MIN;
+  document.getElementById("sem-next").disabled=semOffset>=SEM_MAX;
+}
+document.getElementById("sem-prev").addEventListener("click",()=>{semOffset--;renderSemana();});
+document.getElementById("sem-next").addEventListener("click",()=>{semOffset++;renderSemana();});
+document.getElementById("sem-hoy").addEventListener("click",()=>{semOffset=0;renderSemana();});
+
+/* ====================== LUZ ====================== */
+const LUZ = { hoy:null, man:null, vista:"hoy" };
+const NIVEL_TXT={barata:"Barata",media:"Normal",cara:"Cara"};
+
+// Franja más barata de n horas que empieza entre desde y hasta
+function mejorFranja(p,n,desde,hasta){
+  let best=null;
+  for(let i=desde;i<=Math.min(hasta,24-n);i++){
+    let s=0; for(let k=0;k<n;k++) s+=p[i+k];
+    if(best===null||s<best.s) best={i,s};
+  }
+  return best ? {i:best.i, media:best.s/n} : null;
+}
+
+function renderLuz(){
+  const esHoy=LUZ.vista==="hoy", p=esHoy?LUZ.hoy:LUZ.man, body=document.getElementById("luz-body");
+  document.getElementById("b-hoy").setAttribute("aria-pressed",esHoy);
+  document.getElementById("b-man").setAttribute("aria-pressed",!esHoy);
+  if(!p){
+    body.innerHTML=`<div class="empty">Los precios de mañana se publican cada día hacia las 20:15.<br>Vuelve a mirar esta noche.</div>`;
+    return;
+  }
+  const o=[...p].sort((a,b)=>a-b), nivel=v=>v<=o[8]?"barata":v<=o[16]?"media":"cara";
+  const max=Math.max(...p), min=Math.min(...p);
+  const hAhora=new Date().getHours(), desde=esHoy?hAhora:0;
+  const inicial=esHoy?hAhora:p.indexOf(min);
+
+  const lav=mejorFranja(p,2,desde,22);      // lavadora / lavavajillas
+  const sec=mejorFranja(p,2,Math.max(desde,8),22); // secadora (horas de estar en casa)
+  const hor=mejorFranja(p,1,Math.max(desde,12),21); // horno
+
+  const tip=(ico,k,f,n)=> f ? `<li><span class="ico">${ico}</span><span>${k}</span><span class="v">${hh(f.i)}–${hh(f.i+n)}<small>${eur(f.media)} €</small></span></li>`
+                            : `<li><span class="ico">${ico}</span><span>${k}</span><span class="v" style="color:var(--label-3)">Ya no quedan franjas</span></li>`;
+
+  body.innerHTML=`
+    <div class="readout">
+      <div><div class="h" id="r-h"></div><div class="price" id="r-p"></div></div>
+      <span class="chip" id="r-c"></span>
+    </div>
+    <div class="chart" id="chart" aria-label="Precio por horas">${p.map((v,i)=>
+      `<i class="${nivel(v)}" style="height:${Math.max(6,v/max*100)}%"></i>`).join("")}</div>
+    <div class="axis">${p.map((_,i)=>`<span>${i%6===0?i+"h":""}</span>`).join("")}</div>
+    <ul class="tips">
+      ${tip("🧺","Lavadora · lavavajillas",lav,2)}
+      ${tip("🌀","Secadora",sec,2)}
+      ${tip("🔥","Horno",hor,1)}
+    </ul>`;
+
+  const bars=[...body.querySelectorAll(".chart i")];
+  const show=i=>{
+    bars.forEach((b,k)=>b.classList.toggle("sel",k===i));
+    document.getElementById("r-h").textContent = (esHoy&&i===hAhora?"Ahora · ":"")+`${hh(i)}–${hh(i+1)}`;
+    document.getElementById("r-p").innerHTML=`${eur(p[i])}<small>€/kWh</small>`;
+    const c=document.getElementById("r-c"); c.className="chip "+nivel(p[i]); c.textContent=NIVEL_TXT[nivel(p[i])];
+  };
+  show(inicial);
+  const chart=document.getElementById("chart");
+  const idx=e=>{const r=chart.getBoundingClientRect();return Math.max(0,Math.min(23,Math.floor((e.clientX-r.left)/r.width*24)));};
+  chart.addEventListener("pointermove",e=>show(idx(e)));
+  chart.addEventListener("pointerdown",e=>show(idx(e)));
+  chart.addEventListener("pointerleave",()=>show(inicial));
+}
+document.getElementById("b-hoy").addEventListener("click",()=>{LUZ.vista="hoy";renderLuz();});
+document.getElementById("b-man").addEventListener("click",()=>{LUZ.vista="man";renderLuz();});
+
+function tick(){ document.getElementById("hora").textContent=new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}); }
+tick(); render();
+setInterval(tick,15000);
+setInterval(render,10*60*1000);
+</script>
+
+</body>
+</html>
