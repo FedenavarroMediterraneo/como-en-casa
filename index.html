@@ -86,6 +86,12 @@ h1{margin:2px 0 0;font-size:34px;font-weight:700;letter-spacing:-.025em;line-hei
 .week{padding:14px 10px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
 .col{display:grid;justify-items:center;gap:6px;padding:8px 2px;border-radius:16px;text-align:center}
 .col.today{background:var(--fill)}
+.col{cursor:pointer;transition:background .15s, box-shadow .15s}
+.col:hover{background:var(--fill)}
+.col:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.col.sel{box-shadow:inset 0 0 0 2px var(--blue)}
+.volver{all:unset;cursor:pointer;font-size:15px;font-weight:600;color:var(--blue);padding:6px 12px;border-radius:99px;background:var(--blue-bg)}
+.volver:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .col .dn{font-size:13px;font-weight:600;color:var(--label-2);text-transform:uppercase}
 .col.today .dn{color:var(--blue)}
 .col.dom .dd{color:var(--red)}
@@ -138,7 +144,7 @@ footer{font-size:12px;color:var(--label-2);text-align:center;line-height:1.6}
 <div class="wrap">
   <header>
     <div><div class="date" id="fecha"></div><h1 id="titulo">Hoy</h1></div>
-    <div class="clock" id="hora">--:--</div>
+    <div style="display:flex;align-items:center;gap:12px"><button type="button" class="volver" id="volver" hidden>Volver a hoy</button><div class="clock" id="hora">--:--</div></div>
   </header>
 
   <div class="card quote"><p id="frase"></p><span id="autor"></span></div>
@@ -674,29 +680,45 @@ function widget(tipo,t,d){
 }
 
 /* ====================== RENDER ====================== */
-async function render(){
-  const ahora=new Date(), hoy=new Date(ahora.getFullYear(),ahora.getMonth(),ahora.getDate());
-  const turnos=await cargarTurnos(hoy,9);
-  const verManana=ahora.getHours()>=CAMBIO_DE_DIA;
-  const foco=verManana?addDays(hoy,1):hoy, tf=turnoDe(turnos,foco);
+let diaSel=null; // fecha ISO elegida tocando la semana (null = automático)
+const NOMBRE_DIA=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+function hoyFecha(){const a=new Date();return new Date(a.getFullYear(),a.getMonth(),a.getDate());}
+function focoAuto(){const h=hoyFecha();return new Date().getHours()>=CAMBIO_DE_DIA?addDays(h,1):h;}
+function tituloDia(d){
+  const n=Math.round((d-hoyFecha())/864e5);
+  if(n===0) return "Hoy"; if(n===1) return "Mañana"; if(n===2) return "Pasado mañana"; if(n===-1) return "Ayer";
+  const w=NOMBRE_DIA[d.getDay()]; return w[0].toUpperCase()+w.slice(1);
+}
+async function renderDia(){
+  const hoy=hoyFecha(), turnos=await cargarTurnos();
+  if(diaSel && diaSel<iso(addDays(hoy,-35))) diaSel=null;
+  const foco = diaSel ? new Date(+diaSel.slice(0,4), +diaSel.slice(5,7)-1, +diaSel.slice(8,10)) : focoAuto();
+  const tf=turnoDe(turnos,foco);
 
-  document.getElementById("titulo").textContent=verManana?"Mañana":"Hoy";
+  document.getElementById("titulo").textContent=tituloDia(foco);
   document.getElementById("fecha").textContent=fmtFecha.format(foco);
-  const L=FRASES.length, fr=FRASES[((diasDesdeInicio(foco)%L)+L)%L];
-  document.getElementById("frase").textContent=`“${fr.t}”`;
-  document.getElementById("autor").textContent=`— ${fr.a}`;
+  document.getElementById("volver").hidden=!diaSel;
   document.getElementById("meals").innerHTML=widget("comida",tf,foco)+widget("cena",tf,foco);
 
+  // Aviso de tupper para el día siguiente al que se está viendo
   const sig=addDays(foco,1), ts=turnoDe(turnos,sig);
   const que=[ts.comida==="fuera"&&"la comida", ts.cena==="fuera"&&"la cena"].filter(Boolean);
   const av=document.getElementById("avisos");
   if(que.length){
+    const t1=tituloDia(sig), t0=tituloDia(foco).toLowerCase();
+    const cuando = t0==="hoy"||t0==="mañana"||t0==="ayer"||t0==="pasado mañana" ? t0 : `el ${t0}`;
     av.innerHTML=`<div class="card notice"><div class="notice-ico">🍱</div><div>
-      <b>${verManana?"Pasado mañana":"Mañana"} me llevo tupper</b>
-      <span>Necesito ${que.join(" y ")} preparada. Si cocinamos ${verManana?"mañana":"hoy"}, mejor hacer de más.</span></div></div>`;
+      <b>${t1==="Mañana"||t1==="Pasado mañana"||t1==="Hoy"?t1:"El "+t1.toLowerCase()} me llevo tupper</b>
+      <span>Necesito ${que.join(" y ")} preparada. Si cocinamos ${cuando}, mejor hacer de más.</span></div></div>`;
     av.hidden=false;
   } else av.hidden=true;
-
+}
+async function render(){
+  const ahora=new Date(), hoy=hoyFecha();
+  const fr=FRASES[((diasDesdeInicio(hoy)%FRASES.length)+FRASES.length)%FRASES.length];
+  document.getElementById("frase").textContent=`“${fr.t}”`;
+  document.getElementById("autor").textContent=`— ${fr.a}`;
+  await renderDia();
   await renderSemana();
 
   LUZ.hoy = await cargarLuz(hoy, EJEMPLO_HOY);
@@ -718,7 +740,8 @@ async function renderSemana(){
   let html="";
   for(let i=0;i<7;i++){
     const d=addDays(ini,i), t=turnoDe(turnos,d), c=cocinaDe(t,d), esHoy=iso(d)===iso(hoy);
-    html+=`<div class="col${esHoy?" today":""}${d.getDay()===0?" dom":""}" title="${t.nombre}">
+    const sel=iso(d)===(diaSel??iso(focoAuto()));
+    html+=`<div class="col${esHoy?" today":""}${sel?" sel":""}${d.getDay()===0?" dom":""}" title="${t.nombre}" role="button" tabindex="0" data-fecha="${iso(d)}" aria-pressed="${sel}">
       <span class="dn">${esHoy?"Hoy":DIAS[d.getDay()]}</span>
       <span class="dd">${d.getDate()}</span>
       <span class="tn" style="--tc:${t.color}">${t.corto}</span>
@@ -728,6 +751,12 @@ async function renderSemana(){
     </div>`;
   }
   document.getElementById("semana").innerHTML=html;
+  document.querySelectorAll("#semana .col").forEach(el=>{
+    const elegir=()=>{ const f=el.dataset.fecha; diaSel = f===iso(focoAuto()) ? null : f; renderDia(); renderSemana();
+      window.scrollTo({top:0,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"}); };
+    el.addEventListener("click",elegir);
+    el.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); elegir(); } });
+  });
   const tit = semOffset===0?"Esta semana": semOffset===1?"Próxima semana": semOffset===-1?"Semana pasada":
               semOffset>1?`Dentro de ${semOffset} semanas`:`Hace ${-semOffset} semanas`;
   document.getElementById("sem-tit").textContent=tit;
@@ -739,6 +768,7 @@ async function renderSemana(){
 document.getElementById("sem-prev").addEventListener("click",()=>{semOffset--;renderSemana();});
 document.getElementById("sem-next").addEventListener("click",()=>{semOffset++;renderSemana();});
 document.getElementById("sem-hoy").addEventListener("click",()=>{semOffset=0;renderSemana();});
+document.getElementById("volver").addEventListener("click",()=>{diaSel=null;semOffset=0;renderDia();renderSemana();});
 
 /* ====================== LUZ ====================== */
 const LUZ = { hoy:null, man:null, vista:"hoy" };
